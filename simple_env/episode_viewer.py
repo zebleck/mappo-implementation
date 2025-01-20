@@ -7,55 +7,27 @@ from time import sleep
 class EpisodeViewer:
     """Visualizes recorded episodes using Pygame."""
 
-    def __init__(self, window_size=800, grid_size=5):
+    def __init__(self, render_fn, window_size=800):
+        """
+        Initialize the episode viewer.
+
+        Args:
+            render_fn: Function that renders the state. Should accept (screen, state, window_size) as arguments
+            window_size: Size of the window in pixels
+            grid_size: Number of cells in the grid
+        """
         pygame.init()
         self.window_size = window_size
-        self.grid_size = grid_size
-        self.cell_size = window_size // grid_size
         self.screen = pygame.display.set_mode((window_size, window_size))
         pygame.display.set_caption("Episode Viewer")
 
-        # Colors
-        self.BACKGROUND = (255, 255, 255)
-        self.GRID = (200, 200, 200)
-        self.AGENT = (255, 0, 0)
-        self.FOOD = (0, 255, 0)
+        # Render function
+        self.render_fn = render_fn
 
     def load_episode(self, filepath):
         """Load episode data from file."""
         with open(filepath, "r") as f:
             return json.load(f)
-
-    def draw_grid(self):
-        """Draw the background grid."""
-        self.screen.fill(self.BACKGROUND)
-        for i in range(self.grid_size + 1):
-            pos = i * self.cell_size
-            pygame.draw.line(self.screen, self.GRID, (pos, 0), (pos, self.window_size))
-            pygame.draw.line(self.screen, self.GRID, (0, pos), (self.window_size, pos))
-
-    def draw_state(self, agent_positions, food_positions):
-        """Draw the current state."""
-        # Draw agents
-        for pos in agent_positions:
-            x, y = pos
-            pygame.draw.circle(
-                self.screen,
-                self.AGENT,
-                (int((x + 0.5) * self.cell_size), int((y + 0.5) * self.cell_size)),
-                self.cell_size // 3,
-            )
-
-        # Draw food
-        for pos in food_positions:
-            x, y = pos
-            rect = pygame.Rect(
-                x * self.cell_size + self.cell_size // 4,
-                y * self.cell_size + self.cell_size // 4,
-                self.cell_size // 2,
-                self.cell_size // 2,
-            )
-            pygame.draw.rect(self.screen, self.FOOD, rect)
 
     def play_episode(self, filepath, delay=0.5):
         """Play back an entire episode."""
@@ -73,15 +45,11 @@ class EpisodeViewer:
             if not running:
                 break
 
-            # Draw current state
-            self.draw_grid()
-
             if step_idx < len(episode_data["steps"]):
                 step = episode_data["steps"][step_idx]
-                # Get positions from state instead of directly from step
-                self.draw_state(
-                    step["state"]["agent_positions"], step["state"]["food_positions"]
-                )
+                # Clear screen and render state
+                self.screen.fill((0, 0, 0))  # Clear with black background
+                self.render_fn(self.screen, step["state"], self.window_size)
                 step_idx += 1
             else:
                 running = False
@@ -92,9 +60,51 @@ class EpisodeViewer:
         pygame.quit()
 
 
+def simple_env_render(screen, state, window_size):
+    """Default rendering function for SimpleEnv."""
+    # Colors
+    BACKGROUND = (255, 255, 255)
+    GRID = (200, 200, 200)
+    AGENT = (255, 0, 0)
+    FOOD = (0, 255, 0)
+
+    grid_size = state["size"]
+    cell_size = window_size // grid_size
+
+    # Fill background
+    screen.fill(BACKGROUND)
+
+    # Draw grid
+    for i in range(grid_size + 1):
+        pos = i * cell_size
+        pygame.draw.line(screen, GRID, (pos, 0), (pos, window_size))
+        pygame.draw.line(screen, GRID, (0, pos), (window_size, pos))
+
+    # Draw agents
+    for pos in state["agent_positions"]:
+        x, y = pos
+        pygame.draw.circle(
+            screen,
+            AGENT,
+            (int((x + 0.5) * cell_size), int((y + 0.5) * cell_size)),
+            cell_size // 3,
+        )
+
+    # Draw food
+    for pos in state["food_positions"]:
+        x, y = pos
+        rect = pygame.Rect(
+            x * cell_size + cell_size // 4,
+            y * cell_size + cell_size // 4,
+            cell_size // 2,
+            cell_size // 2,
+        )
+        pygame.draw.rect(screen, FOOD, rect)
+
+
 def view_episode(episode_num, episodes_dir="episodes"):
     """Convenience function to view a specific episode."""
-    viewer = EpisodeViewer()
+    viewer = EpisodeViewer(simple_env_render)
     viewer.play_episode(f"{episodes_dir}/episode_{episode_num}.json")
 
 

@@ -3,14 +3,14 @@ from simple_ppo import PPOAgent
 from episode_recorder import EpisodeRecorder
 
 # Create environment and agents
-env = SimpleEnv(size=5, n_agents=2)
+env = SimpleEnv(size=15, n_agents=2)
 agents = [PPOAgent() for _ in range(2)]
 
 # Initialize recorder
 recorder = EpisodeRecorder()
 
 # Training loop
-n_episodes = 1000
+n_episodes = 10000
 max_steps = 100
 
 for episode in range(n_episodes):

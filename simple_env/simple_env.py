@@ -20,7 +20,7 @@ class SimpleEnv:
         self.agent_positions = np.random.randint(0, self.size, size=(self.n_agents, 2))
 
         # Fixed food positions
-        self.food_positions = np.array([[1, 1], [3, 3], [1, 3]])
+        self.food_positions = np.random.randint(0, self.size, size=(self.n_food, 2))
 
         # Get observations for all agents
         return [self._get_observation(i) for i in range(self.n_agents)]
@@ -93,5 +93,4 @@ class SimpleEnv:
             "size": self.size,
             "n_agents": self.n_agents,
             "n_food": self.n_food,
-            # Add any other state variables here
         }
