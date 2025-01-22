@@ -94,3 +94,7 @@ class SimpleEnv:
             "n_agents": self.n_agents,
             "n_food": self.n_food,
         }
+
+    def get_observation_size(self):
+        """Return the size of the observation space."""
+        return 4

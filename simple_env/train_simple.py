@@ -1,10 +1,10 @@
-from simple_env import SimpleEnv
+from simple_env.simple_vist_tracking_env import SimpleVisitTrackingEnv
 from simple_ppo import PPOAgent
 from episode_recorder import EpisodeRecorder
 
 # Create environment and agents
-env = SimpleEnv(size=15, n_agents=2)
-agents = [PPOAgent() for _ in range(2)]
+env = SimpleVisitTrackingEnv(size=15, n_agents=2)
+agents = [PPOAgent(input_size=env.get_observation_size()) for _ in range(2)]
 
 # Initialize recorder
 recorder = EpisodeRecorder()
