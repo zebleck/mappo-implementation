@@ -98,3 +98,7 @@ class SimpleEnv:
     def get_observation_size(self):
         """Return the size of the observation space."""
         return 4
+
+    def get_action_size(self):
+        """Return the size of the action space."""
+        return 4
