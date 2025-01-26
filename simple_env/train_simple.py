@@ -4,7 +4,10 @@ from episode_recorder import EpisodeRecorder
 
 # Create environment and agents
 env = SimpleDynamicVisitTrackingEnv(size=15, n_agents=2)
-agents = [PPOAgent(input_size=env.get_observation_size(), n_actions=env.get_action_size()) for _ in range(2)]
+agents = [
+    PPOAgent(input_size=env.get_observation_size(), n_actions=env.get_action_size())
+    for _ in range(2)
+]
 
 # Initialize recorder
 recorder = EpisodeRecorder()

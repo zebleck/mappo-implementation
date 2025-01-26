@@ -32,7 +32,7 @@ class EpisodeViewer:
     def play_episode(self, filepath, get_display_state_fn, step_duration=0.5):
         """
         Play back an entire episode.
-        
+
         Args:
             filepath: Path to episode file
             get_display_state_fn: Function that returns the state to display given (current_state, next_state, progress)
@@ -42,7 +42,7 @@ class EpisodeViewer:
         running = True
         step_idx = 0
         transition_time = 0
-        
+
         while running and step_idx < len(episode_data["steps"]):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -53,25 +53,27 @@ class EpisodeViewer:
                 break
 
             current_state = episode_data["steps"][step_idx]["state"]
-            next_state = (episode_data["steps"][step_idx + 1]["state"] 
-                         if step_idx + 1 < len(episode_data["steps"]) 
-                         else current_state)
+            next_state = (
+                episode_data["steps"][step_idx + 1]["state"]
+                if step_idx + 1 < len(episode_data["steps"])
+                else current_state
+            )
 
             transition_time += 1 / self.fps
             progress = min(transition_time / step_duration, 1.0)
-            
+
             # Get the state to display using provided function
             display_state = get_display_state_fn(current_state, next_state, progress)
-            
+
             # Render the state
             self.screen.fill((0, 0, 0))
             self.render_fn(self.screen, display_state, self.window_size)
             pygame.display.flip()
-            
+
             if progress >= 1.0:
                 step_idx += 1
                 transition_time = 0
-            
+
             self.clock.tick(self.fps)
 
         pygame.quit()
@@ -102,11 +104,11 @@ def simple_env_render(screen, state, window_size):
         x, y = pos
         # Get pulsation scale if it exists
         scale = state.get("food_scales", [1.0] * len(state["food_positions"]))[i]
-        
+
         # Calculate scaled size
         scaled_size = int(cell_size * 0.5 * scale)
         offset = (cell_size - scaled_size) // 2
-        
+
         rect = pygame.Rect(
             x * cell_size + offset,
             y * cell_size + offset,
@@ -130,44 +132,46 @@ def simple_env_interpolate(state1, state2, progress):
     """Interpolation function specific to SimpleEnv."""
     interpolated_state = state1.copy()
     grid_size = state1["size"]
-    
+
     # Interpolate agent positions
     current_positions = np.array(state1["agent_positions"])
     next_positions = np.array(state2["agent_positions"])
-    
+
     # Handle wrapped movement
     diff = next_positions - current_positions
-    
+
     # Check for wrapping in both x and y directions
-    diff = np.where(diff > grid_size/2, diff - grid_size, diff)
-    diff = np.where(diff < -grid_size/2, diff + grid_size, diff)
-    
+    diff = np.where(diff > grid_size / 2, diff - grid_size, diff)
+    diff = np.where(diff < -grid_size / 2, diff + grid_size, diff)
+
     # Linear interpolation between positions
     interpolated_positions = current_positions + diff * progress
-    
+
     # Wrap the interpolated positions to stay within grid bounds
     interpolated_positions = interpolated_positions % grid_size
-    
+
     interpolated_state["agent_positions"] = interpolated_positions.tolist()
 
     # Add shrinking effect for food that agents are on
     food_scales = []
     agent_positions = np.array(state2["agent_positions"])
-    
+
     for food_pos in state1["food_positions"]:
         # Check if any agent is exactly on this food position
         food_pos = np.array(food_pos)
-        is_agent_on_food = any(np.array_equal(agent_pos, food_pos) for agent_pos in agent_positions)
-        
+        is_agent_on_food = any(
+            np.array_equal(agent_pos, food_pos) for agent_pos in agent_positions
+        )
+
         if is_agent_on_food:
             # Shrink to 20% of original size
             scale = 1.0 - (0.2 * progress)
         else:
             # Return to full size if no agent is on it
             scale = 1.0
-            
+
         food_scales.append(scale)
-    
+
     interpolated_state["food_scales"] = food_scales
     return interpolated_state
 
@@ -183,7 +187,7 @@ def get_simple_env_display_state(current_state, next_state, progress):
     """Combines interpolation and easing for SimpleEnv states."""
     # Apply easing to progress
     eased_progress = ease_in_out_quad(progress)
-    
+
     # Get interpolated state
     return simple_env_interpolate(current_state, next_state, eased_progress)
 
@@ -193,7 +197,7 @@ def view_episode(episode_num, episodes_dir="episodes"):
     viewer = EpisodeViewer(render_fn=simple_env_render)
     viewer.play_episode(
         f"{episodes_dir}/episode_{episode_num}.json",
-        get_display_state_fn=get_simple_env_display_state
+        get_display_state_fn=get_simple_env_display_state,
     )
 
 

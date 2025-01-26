@@ -19,7 +19,7 @@ class SimpleDynamicVisitTrackingEnv:
         self.steps = 0
         self.food_capacities = {}  # Track remaining capacity of each food
         self.initial_capacity = 5  # Starting capacity for each food
-        self.spawn_interval = 10   # New food spawns every this many steps
+        self.spawn_interval = 10  # New food spawns every this many steps
 
     def reset(self):
         self.steps = 0
@@ -29,7 +29,9 @@ class SimpleDynamicVisitTrackingEnv:
 
         # Fixed food positions and initialize capacities
         self.food_positions = np.random.randint(0, self.size, size=(self.n_food, 2))
-        self.food_capacities = {f"{pos[0]},{pos[1]}": self.initial_capacity for pos in self.food_positions}
+        self.food_capacities = {
+            f"{pos[0]},{pos[1]}": self.initial_capacity for pos in self.food_positions
+        }
 
         # Initialize visit maps for each agent (tracks when each cell was last visited)
         self.visit_maps = np.full((self.n_agents, self.size, self.size), -1)
@@ -85,15 +87,20 @@ class SimpleDynamicVisitTrackingEnv:
                 agent_pos = f"{self.agent_positions[i][0]},{self.agent_positions[i][1]}"
                 # Check if agent is on food
                 for food_pos in list(self.food_capacities.keys()):
-                    food_x, food_y = map(int, food_pos.split(','))
+                    food_x, food_y = map(int, food_pos.split(","))
                     if agent_pos == food_pos:
                         rewards[i] += 1.0
                         self.food_capacities[food_pos] -= 1
-                        
+
                         # Remove food if capacity depleted
                         if self.food_capacities[food_pos] <= 0:
-                            self.food_positions = np.array([pos for pos in self.food_positions 
-                                                          if not (pos[0] == food_x and pos[1] == food_y)])
+                            self.food_positions = np.array(
+                                [
+                                    pos
+                                    for pos in self.food_positions
+                                    if not (pos[0] == food_x and pos[1] == food_y)
+                                ]
+                            )
                             del self.food_capacities[food_pos]
 
         # Spawn new food every spawn_interval steps
@@ -101,22 +108,27 @@ class SimpleDynamicVisitTrackingEnv:
             new_food_pos = None
             max_attempts = 100  # Prevent infinite loop
             attempts = 0
-            
+
             while attempts < max_attempts:
                 new_pos = np.random.randint(0, self.size, size=2)
-                
+
                 # Check if position is already occupied by food
-                if not any(np.array_equal(new_pos, existing_pos) for existing_pos in self.food_positions):
+                if not any(
+                    np.array_equal(new_pos, existing_pos)
+                    for existing_pos in self.food_positions
+                ):
                     new_food_pos = new_pos
                     break
                 attempts += 1
-            
+
             if new_food_pos is not None:
                 if len(self.food_positions) == 0:
                     self.food_positions = np.array([new_food_pos])
                 else:
                     self.food_positions = np.vstack([self.food_positions, new_food_pos])
-                self.food_capacities[f"{new_food_pos[0]},{new_food_pos[1]}"] = self.initial_capacity
+                self.food_capacities[
+                    f"{new_food_pos[0]},{new_food_pos[1]}"
+                ] = self.initial_capacity
 
         # Small negative reward per step
         rewards -= 0.1
