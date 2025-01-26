@@ -29,7 +29,7 @@ class EpisodeRecorder:
         self.current_episode["steps"].append(
             {
                 "step_num": step_num,
-                "actions": actions,
+                "actions": [self._convert_to_json(act) for act in actions],
                 "observations": [self._convert_to_json(obs) for obs in observations],
                 "rewards": self._convert_to_json(rewards),
                 "state": self._convert_state_to_json(env_state),
@@ -48,12 +48,8 @@ class EpisodeRecorder:
 
     def _convert_to_json(self, obj):
         """Convert numpy arrays and other types to JSON-serializable format."""
-        if isinstance(obj, np.ndarray):
+        if isinstance(obj, (np.ndarray, np.generic)):
             return obj.tolist()
-        elif isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
         elif isinstance(obj, (list, tuple)):
             return [self._convert_to_json(item) for item in obj]
         elif isinstance(obj, dict):
