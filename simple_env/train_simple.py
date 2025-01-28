@@ -1,6 +1,10 @@
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from simple_dynamic_visit_tracking_env import SimpleDynamicVisitTrackingEnv
 from simple_ppo import PPOAgent
-from episode_recorder import EpisodeRecorder
+from rendering.episode_recorder import EpisodeRecorder
 
 # Create environment and agents
 env = SimpleDynamicVisitTrackingEnv(size=15, n_agents=2)
